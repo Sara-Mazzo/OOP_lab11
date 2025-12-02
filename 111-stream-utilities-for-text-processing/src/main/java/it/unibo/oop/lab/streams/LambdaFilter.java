@@ -9,6 +9,7 @@ import java.awt.Toolkit;
 import java.io.Serial;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -16,6 +17,8 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * Modify this small program adding new filters.
@@ -41,7 +44,27 @@ public final class LambdaFilter extends JFrame {
         /**
          * Commands.
          */
-        IDENTITY("No modifications", Function.identity());
+        IDENTITY("No modifications", Function.identity()),
+        LOWER_CASE("Convert to lowercase", String::toLowerCase),
+        CHAR_COUNTER("Count the number of chars", s -> s.length() + " chars"),
+        LINES_COUNTER("Count the number of lines", s -> s.lines().count() + " lines"),
+        ALPHABETICAL_ORDER("List all the words in alphabetical order", 
+            s -> s.lines()
+                .flatMap(l -> Arrays.stream(l.toLowerCase(Locale.getDefault()).split(" ")))
+                .filter(w -> !w.isBlank())
+                .sorted()
+                .collect(Collectors.joining("\n"))
+        ),
+        WORD_COUNTER("Write the count for each word", 
+            s -> s.lines()
+                .flatMap(l -> Arrays.stream(l.toLowerCase(Locale.getDefault()).split(" ")))
+                .filter(w -> !w.isBlank())
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .sorted((w1, w2) -> w1.getKey().compareTo(w2.getKey()))
+                .map(w -> w.getKey() + " -> " + w.getValue())
+                .collect(Collectors.joining("\n"))
+        );
 
         private final String commandName;
         private final Function<String, String> fun;
